@@ -413,7 +413,7 @@ const CreateAccount = () => {
                   {isLoading?"Loading...":" Create Account"}  
                 </button>
             </div>
-<PreviewFile/>
+<PreviewFile id=""/>
         </div>
 
     );

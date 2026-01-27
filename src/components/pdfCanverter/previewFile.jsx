@@ -4,14 +4,14 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Logo from "../../assets/svgLogo.svg"
 
-const PreviewFile = () => {
+const PreviewFile = (id) => {
     const axiosInstance = axiosConfig();
     const [data, setData] = useState(null);
     const pdfRef = useRef();
 
     const fetchDtls = async () => {
         try {
-            const res = await axiosInstance.get("/super-admin/get-account-details");
+            const res = await axiosInstance.get(`/super-admin/get-account-details?id=${id}`);
             setData(res.data?.accountData[0]);
         } catch (error) {
             console.log(error, "==>");

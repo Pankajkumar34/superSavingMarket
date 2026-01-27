@@ -19,16 +19,19 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import { useEffect, useState } from "react";
 import axiosConfig from "./utils/axios.config";
-import { useDispatch,useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { authHandler } from "./utils/thunkApis/auth.api";
-  import { ToastContainer } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import CreateAccount from "./pages/createAccout";
+import FranchisesList from "./pages/franchisesList";
+import UserList from "./pages/userList";
+import WarehouseList from "./pages/wareHouse";
 
 export default function App() {
   const [loading, setLoading] = useState(true);
-  const {authUser} = useSelector(state =>state.auth)
+  const { authUser } = useSelector(state => state.auth)
   const [auth, setAuth] = useState(false);
-const dispatch = useDispatch()
+  const dispatch = useDispatch()
   const axiosInstance = axiosConfig()
 
   const fetch = async () => {
@@ -57,14 +60,17 @@ const dispatch = useDispatch()
         <Routes>
           {/* Dashboard Layout */}
 
-          <Route element={<AppLayout auth={auth}/>}>
+          <Route element={<AppLayout auth={auth} />}>
             <Route index path="/" element={<Home />} />
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
-<Route path="/create-account" element={<CreateAccount/>}/>
+            <Route path="/create-account" element={<CreateAccount />} />
+            <Route path="/warehouse-list" element={<WarehouseList />} />
+            <Route path="/user-list" element={<UserList />} />
+            <Route path="/franchises-list" element={<FranchisesList />} />
             {/* Forms */}
             <Route path="/form-elements" element={<FormElements />} />
 
@@ -84,7 +90,7 @@ const dispatch = useDispatch()
           </Route>
 
           {/* Auth Layout */}
-          <Route path="/signin" element={authUser? <Navigate to="/" />:<SignIn />} />
+          <Route path="/signin" element={authUser ? <Navigate to="/" /> : <SignIn />} />
           {/* <Route path="/signin" element={<SignIn />} /> */}
           <Route path="/signup" element={<SignUp />} />
 
@@ -92,7 +98,7 @@ const dispatch = useDispatch()
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
-       <ToastContainer />
+      <ToastContainer />
     </>
   );
 }
