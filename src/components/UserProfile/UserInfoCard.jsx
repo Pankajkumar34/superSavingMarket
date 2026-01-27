@@ -4,7 +4,7 @@ import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 
-export default function UserInfoCard() {
+export default function UserInfoCard({userDtls}) {
   const { isOpen, openModal, closeModal } = useModal();
   const handleSave = () => {
     // Handle save logic here
@@ -25,7 +25,7 @@ export default function UserInfoCard() {
                 First Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Musharof
+                {userDtls && userDtls?.firstName}
               </p>
             </div>
 
@@ -34,7 +34,7 @@ export default function UserInfoCard() {
                 Last Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Chowdhury
+                {userDtls && userDtls?.lastName}
               </p>
             </div>
 
@@ -43,7 +43,7 @@ export default function UserInfoCard() {
                 Email address
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                randomuser@pimjo.com
+                 {userDtls && userDtls?.email}
               </p>
             </div>
 
@@ -52,16 +52,24 @@ export default function UserInfoCard() {
                 Phone
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                +09 363 398 46
+                {userDtls && userDtls?.countryCode+" "+userDtls?.phoneNumber}
               </p>
             </div>
 
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Bio
+                Role
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Team Manager
+               {userDtls && userDtls?.role}
+              </p>
+            </div>
+            <div>
+              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+               Account No 
+              </p>
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+               {userDtls && userDtls?.accountNumber}
               </p>
             </div>
           </div>

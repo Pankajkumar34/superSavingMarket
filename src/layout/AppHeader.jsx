@@ -1,4 +1,10 @@
-const AppHeader = ({ title, subtitle }) => {
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router";
+
+const AppHeader = ({ title, subtitle ,userDtls}) => {
+const navigate = useNavigate()
+
   return (
     <header className="bg-white  border-b dark:bg-gray-900 shadow px-6 py-4 flex items-center justify-between">
       {/* Left - Title */}
@@ -27,13 +33,13 @@ const AppHeader = ({ title, subtitle }) => {
         </nav>
 
         {/* Profile Avatar */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={()=>navigate("/profile")}>
           <img
-            src="https://via.placeholder.com/40"
+            src={userDtls?.profileImage}
             alt="User Avatar"
             className="w-10 h-10 rounded-full border"
           />
-          <span className="text-gray-700 dark:text-gray-300">John Doe</span>
+          <span className="text-gray-700 dark:text-gray-300">{userDtls?.firstName && userDtls?.firstName+" "+userDtls?.lastName}</span>
         </div>
       </div>
     </header>

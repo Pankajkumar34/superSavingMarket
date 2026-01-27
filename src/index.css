@@ -173,6 +173,13 @@ layer(base);
   If we ever want to remove these styles, we need to add an explicit border
   color utility to any element that depends on these defaults.
 */
+@media print {
+  img {
+    max-height: 180px;
+    object-fit: contain;
+  }
+}
+
 @layer base {
   *,
   ::after,
@@ -189,6 +196,15 @@ layer(base);
     @apply relative font-normal font-outfit z-1 bg-gray-50;
   }
 }
+/* index.css or globals.css */
+.input {
+  @apply w-full mb-3 px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+.btn {
+  @apply px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition;
+}
+
 
 @utility menu-item {
   @apply relative flex items-center w-full gap-3 px-3 py-2 font-medium rounded-lg text-theme-sm;
