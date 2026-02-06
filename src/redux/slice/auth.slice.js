@@ -5,7 +5,8 @@ const initialState = {
     isAuthenticated: false,
     authUser: null,
     loading: false,
-    error: ""
+    error: "",
+    
 }
 
 const AuthSlice = createSlice({
@@ -55,6 +56,8 @@ const AuthSlice = createSlice({
                 state.error = action.payload.response.data.message || "Login failed";
                 state.isAuthenticated = false;
             });
+
+     
     }
 
 

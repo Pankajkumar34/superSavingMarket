@@ -1,16 +1,22 @@
-import { useEffect, useState } from "react";
-import { Navigate } from "react-router";
-import axiosConfig from "../utils/axios.config";
-import Cookies from "js-cookie"
-import { useSelector } from "react-redux";
-export const PraviteRoute = ({ children }) => {
-    const axiosInstance = axiosConfig()
-    const { loading, isAuthenticated, authUser } = useSelector(state => state.auth)   
 
-    if (loading) return <p>Checking auth...</p>;
-    return (
-        <>
-            {isAuthenticated ? children : <Navigate to="/signin" />}
-        </>
-    )
+import { Navigate } from "react-router";
+
+import { useSelector } from "react-redux";
+
+
+export const PraviteRoute = ({ children }) => {
+  const { user,loading, isAuthenticated } = useSelector(
+    (state) => state.auth
+  );
+  const isAuth = sessionStorage.getItem("isAuthenticated") === "true";
+  if (loading) {
+    return <p>Checking authentication...</p>;
+  }
+
+  if (!isAuthenticated && !isAuth) {
+    return <Navigate to="/signin" replace />;
+  }
+ return children;
+
+  
 };

@@ -10,7 +10,6 @@ import { useEffect, useState } from "react";
 const LayoutContent = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
   const {  authUser } = useSelector(state => state.auth)
-  console.log(authUser,"authUserauthUser")
   const [userDtls, setUserDtls] = useState({})
   useEffect(() => {
     setUserDtls(authUser)

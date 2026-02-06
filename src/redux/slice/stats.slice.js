@@ -1,9 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getStats } from "../../utils/thunkApis/stats.apis";
+import { fetchAccountDetails, getStats } from "../../utils/thunkApis/stats.apis";
+import { getUserList } from "../../utils/thunkApis/auth.api";
 const initialState = {
     userStats: null,
     loading: false,
-    error: ""
+    error: "",
+    userList:[],
+    viewDetails:null
 }
 
 const statsSlice = createSlice({
@@ -34,7 +37,27 @@ const statsSlice = createSlice({
                 state.error = action.payload.response.data.message || "Login failed";
             });
 
-           
+              // list
+        builder
+        .addCase(getUserList.fulfilled,(state,action)=>{
+            state.userList=action.payload
+        })
+
+
+        builder
+      .addCase(fetchAccountDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAccountDetails.fulfilled, (state, action) => {
+        state.loading = false;
+        state.viewDetails = action.payload;
+      })
+      .addCase(fetchAccountDetails.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+
     }
 
 

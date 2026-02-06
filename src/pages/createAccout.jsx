@@ -4,6 +4,7 @@ import { fileUploader } from "../utils/thunkApis/auth.api";
 import CropModal from "../components/reactCrop/cropFile";
 import { getCroppedImg } from "../components/reactCrop/helperCrop";
 import PreviewFile from "../components/pdfCanverter/previewFile";
+import { useNavigate } from "react-router";
 
 
 
@@ -47,7 +48,7 @@ const CreateAccount = () => {
     const [rawImage, setRawImage] = useState(null);
     const [cropField, setCropField] = useState("");
 
-
+const navigate =useNavigate()
 
 
     const [docPreview, setDocPreview] = useState({
@@ -56,22 +57,7 @@ const CreateAccount = () => {
         panImage: null,
         passportPhoto: null
     });
-    // const handleFileChange = (e) => {
-    //   const { name, files } = e.target;
-    //   const file = files[0];
-
-    //   if (!file) return;
-
-    //   setFormData({
-    //     ...formData,
-    //     [name]: file
-    //   });
-
-    //   setDocPreview({
-    //     ...docPreview,
-    //     [name]: URL.createObjectURL(file)
-    //   });
-    // };
+   
 
     const [formData, setFormData] = useState({
         // ===== Basic Details =====
@@ -165,36 +151,6 @@ const CreateAccount = () => {
     };
 
 
-    // const handleFileChange = async (e) => {
-    //     const { name, files } = e.target;
-    //     const file = files[0];
-
-    //     if (!file) return;
-
-    //     const uploadData = new FormData();
-    //     uploadData.append("file", file);
-
-    //     try {
-    //         const res = await fileUploader(uploadData);
-
-    //         setFormData((prev) => ({
-    //             ...prev,
-    //             [name]: res?.filePath[0].url
-    //         }));
-
-    //         setDocPreview((prev) => ({
-    //             ...prev,
-    //             [name]: res?.filePath[0].url
-    //         }));
-    //         setCropImage(url);
-    //         setShowCrop(true);
-
-    //     } catch (error) {
-    //         console.error("Upload failed");
-    //     }
-    // };
-
-
     const handleSubmit = async () => {
         try {
             setIsLoading(true)
@@ -220,9 +176,10 @@ const CreateAccount = () => {
                 bankName: formData.bankName,
                 branchName: formData.branchName
             })
-            console.log(res, "resres=>res")
+            // console.log(res, "resres=>res")
             if (res.status === 201) {
                 setIsLoading(false)
+                navigate("/franchises-list")
             }
 
         } catch (error) {

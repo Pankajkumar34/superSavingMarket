@@ -3,25 +3,29 @@ import React, { useEffect, useRef, useState } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Logo from "../../assets/svgLogo.svg"
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAccountDetails } from "../../utils/thunkApis/stats.apis";
 
-const PreviewFile = (id) => {
+const PreviewFile = ({ id }) => {
+    const { viewDetails } = useSelector(state => state.stats)
     const axiosInstance = axiosConfig();
-    const [data, setData] = useState(null);
     const pdfRef = useRef();
+    const dispatch = useDispatch()
+    // const fetchDtls = async () => {
+    //     try {
+    //         const res = await axiosInstance.get(`/super-admin/get-account-details?id=${id}&role=${role}`);
+    //         setviewDetails(res.viewDetails?.accountviewDetails[0]);
 
-    const fetchDtls = async () => {
-        try {
-            const res = await axiosInstance.get(`/super-admin/get-account-details?id=${id}`);
-            setData(res.data?.accountData[0]);
-        } catch (error) {
-            console.log(error, "==>");
-        }
-    };
-    console.log(data, "datadata")
+    //         setUserviewDetails(res.viewDetails?.accountviewDetails[0])
+    //     } catch (error) {
+    //         console.log(error, "==>");
+    //     }
+    // };
     useEffect(() => {
-        fetchDtls();
+        dispatch(fetchAccountDetails(id));
     }, []);
 
+    console.log(viewDetails,"viewDetails==>")
     // ================= PDF DOWNLOAD =================
     const downloadPDF = async () => {
         const canvas = await html2canvas(pdfRef.current, {
@@ -30,7 +34,7 @@ const PreviewFile = (id) => {
             backgroundColor: "#ffffff",
         });
 
-        const imgData = canvas.toDataURL("image/png");
+        const imgviewDetails = canvas.toviewDetailsURL("image/jpg");
 
         const pdf = new jsPDF("p", "mm", "a4");
 
@@ -43,13 +47,13 @@ const PreviewFile = (id) => {
         let heightLeft = imgHeight;
         let position = 0;
 
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgviewDetails, "PNG", 0, position, imgWidth, imgHeight);
         heightLeft -= pdfHeight;
 
         while (heightLeft > 0) {
             position = heightLeft - imgHeight;
             pdf.addPage();
-            pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+            pdf.addImage(imgviewDetails, "PNG", 0, position, imgWidth, imgHeight);
             heightLeft -= pdfHeight;
         }
 
@@ -57,7 +61,7 @@ const PreviewFile = (id) => {
     };
 
 
-    if (!data) return <p className="text-center mt-10">Loading...</p>;
+    if (!viewDetails) return <p className="text-center mt-10">Loading...</p>;
 
     return (
         <div className="max-w-5xl mx-auto p-6">
@@ -84,12 +88,12 @@ const PreviewFile = (id) => {
                 </h3>
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                    <p><b>Name:</b> {data.firstName} {data.lastName}</p>
-                    <p><b>Email:</b> {data.email}</p>
-                    <p><b>Phone:</b> {data.countryCode} {data.phoneNumber}</p>
-                    <p><b>Role:</b> {data.role}</p>
-                    <p><b>Account No:</b> {data.accountNumber}</p>
-                    <p><b>Status:</b> {data.status}</p>
+                    <p><b>Name:</b> {viewDetails.firstName} {viewDetails.lastName}</p>
+                    <p><b>Email:</b> {viewDetails.email}</p>
+                    <p><b>Phone:</b> {viewDetails.countryCode} {viewDetails.phoneNumber}</p>
+                    <p><b>Role:</b> {viewDetails.role}</p>
+                    <p><b>Account No:</b> {viewDetails.accountNumber}</p>
+                    <p><b>Status:</b> {viewDetails.status}</p>
                 </div>
 
                 {/* FRANCHISE DETAILS */}
@@ -98,9 +102,9 @@ const PreviewFile = (id) => {
                 </h3>
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                    <p><b>Franchise Name:</b> {data?.data?.name}</p>
-                    <p><b>Franchise Code:</b> {data?.data?.code}</p>
-                    <p><b>Active:</b> {data?.data?.isActive ? "Yes" : "No"}</p>
+                    <p><b>Franchise Name:</b> {viewDetails?.data?.name}</p>
+                    <p><b>Franchise Code:</b> {viewDetails?.data?.code}</p>
+                    <p><b>Active:</b> {viewDetails?.data?.isActive ? "Yes" : "No"}</p>
                 </div>
 
                 {/* DOCUMENTS */}
@@ -112,7 +116,7 @@ const PreviewFile = (id) => {
                     <div>
                         <p className="mb-1 font-medium">Passport</p>
                         <img
-                            src={data?.data?.documents.passportPhoto}
+                            src={viewDetails?.data?.documents.passportPhoto}
                             crossOrigin="anonymous"
                             className="h-24 w-20 mx-auto object-cover border rounded"
                         />
@@ -121,7 +125,7 @@ const PreviewFile = (id) => {
                     <div>
                         <p className="mb-1 font-medium">Aadhaar Front</p>
                         <img
-                            src={data?.data?.documents.aadhaar.frontImage}
+                            src={viewDetails?.data?.documents.aadhaar.frontImage}
                             crossOrigin="anonymous"
                             className="h-24 w-28 mx-auto object-cover border rounded"
                         />
@@ -130,7 +134,7 @@ const PreviewFile = (id) => {
                     <div>
                         <p className="mb-1 font-medium">Aadhaar Back</p>
                         <img
-                            src={data?.data?.documents.aadhaar.backImage}
+                            src={viewDetails?.data?.documents.aadhaar.backImage}
                             crossOrigin="anonymous"
                             className="h-24 w-28 mx-auto object-cover border rounded"
                         />
@@ -139,7 +143,7 @@ const PreviewFile = (id) => {
                     <div>
                         <p className="mb-1 font-medium">PAN</p>
                         <img
-                            src={data?.data?.documents.pan.image}
+                            src={viewDetails?.data?.documents.pan.image}
                             crossOrigin="anonymous"
                             className="h-24 w-28 mx-auto object-cover border rounded"
                         />
@@ -152,15 +156,15 @@ const PreviewFile = (id) => {
                 </h3>
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                    <p><b>Account Holder:</b> {data?.data?.bankDetails.accountHolderName}</p>
-                    <p><b>Bank Name:</b> {data?.data?.bankDetails.bankName}</p>
-                    <p><b>IFSC:</b> {data?.data?.bankDetails.ifscCode}</p>
-                    <p><b>Branch:</b> {data?.data?.bankDetails.branchName}</p>
+                    <p><b>Account Holder:</b> {viewDetails?.data?.bankDetails.accountHolderName}</p>
+                    <p><b>Bank Name:</b> {viewDetails?.data?.bankDetails.bankName}</p>
+                    <p><b>IFSC:</b> {viewDetails?.data?.bankDetails.ifscCode}</p>
+                    <p><b>Branch:</b> {viewDetails?.data?.bankDetails.branchName}</p>
                 </div>
 
                 {/* FOOTER */}
                 <p className="text-xs text-gray-400 mt-6">
-                    Created on: {new Date(data.createdAt).toLocaleString()}
+                    Created on: {new Date(viewDetails.createdAt).toLocaleString()}
                 </p>
             </div>
         </div>

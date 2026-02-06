@@ -31,6 +31,11 @@ const navItems = [
     name: "Create Account",
     path: "/create-account",
   },
+   {
+    icon: <PencilIcon />,
+    name: "Add Product",
+    path: "/add-product",
+  },
   {
     icon: <CalenderIcon />,
     name: "Calendar",

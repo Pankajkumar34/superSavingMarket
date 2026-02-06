@@ -23,8 +23,8 @@ export default function UserProfiles() {
         toast.success("Logout Successfully")
          await dispatch(removeUser())
         setTimeout(() => {
-        
-          navigante("/signin")
+        sessionStorage.setItem("isAuthenticated",false)
+          navigate("/signin")
         }, 500)
       }
     } catch (error) {

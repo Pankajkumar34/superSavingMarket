@@ -27,13 +27,23 @@ export const authHandler = createAsyncThunk("/type/auth/check", async (userData,
     }
 })
 
+export const getUserList=createAsyncThunk("/type/get-user-list",async(query)=>{
+   try {
+        const res = await axiosInstance.get(`/super-admin/get-user-list?role=${query}`)
+        // console.log(res.data,"====>")
+        return res.data.userList
+    } catch (error) {
+        console.log(error, "-->")
+        return rejectWithValue(error)
+    }
+})
 
-export const fileUploader=async(formData)=>{
-try {
-    const res = await axiosInstance.post("/upload",formData)
-    console.log(res,"res")
-    return res.data
-} catch (error) {
-    console.log(error,"==>")
-}
+export const fileUploader = async (formData) => {
+    try {
+        const res = await axiosInstance.post("/upload", formData)
+        console.log(res, "res")
+        return res.data
+    } catch (error) {
+        console.log(error, "==>")
+    }
 }

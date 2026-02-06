@@ -3,7 +3,7 @@ import ComponentCard from "../../components/common/ComponentCard";
 import PageMeta from "../../components/common/PageMeta";
 import BasicTableOne from "../../components/tables/BasicTables/BasicTableOne";
 
-export default function BasicTables({title}) {
+export default function BasicTables({title,tableData}) {
   return (
     <>
       <PageMeta
@@ -14,7 +14,7 @@ export default function BasicTables({title}) {
       <div className="space-y-6">
         <ComponentCard title="Basic Table 1">
             <button onClick={()=>window.history.back()}>Back</button>
-          <BasicTableOne />
+          <BasicTableOne tableData={tableData} />
         </ComponentCard>
       </div>
     </>

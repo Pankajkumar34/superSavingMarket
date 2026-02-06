@@ -60,6 +60,8 @@ export default function SignInForm() {
         if (loginHandler.fulfilled.match(res)) {
           dispatch(setUser(res.payload))
           toast.success("Login Successfully");
+          sessionStorage.setItem("isAuthenticated", true)
+
           navigate("/");
         }
         if (res.meta.requestStatus === "rejected") {

@@ -26,10 +26,15 @@ import CreateAccount from "./pages/createAccout";
 import FranchisesList from "./pages/franchisesList";
 import UserList from "./pages/userList";
 import WarehouseList from "./pages/wareHouse";
+import DetailsView from "./pages/detailsView";
+import ProductInventoryStep from "./pages/ProductSetup/ProductInventoryStep";
+import SubCategoryStep from "./pages/ProductSetup/SubCategoryStep";
+import CategoryStep from "./pages/ProductSetup/CategoryStep";
+import BrandStep from "./pages/ProductSetup/BrandStep";
 
 export default function App() {
   const [loading, setLoading] = useState(true);
-  const { authUser } = useSelector(state => state.auth)
+  const { authUser, isAuthenticated } = useSelector(state => state.auth)
   const [auth, setAuth] = useState(false);
   const dispatch = useDispatch()
   const axiosInstance = axiosConfig()
@@ -37,7 +42,14 @@ export default function App() {
   const fetch = async () => {
     try {
       const res = await dispatch(authHandler())
-      console.log(res, "==>resres")
+      // console.log(res, "==>resres")
+      if (res?.meta?.requestStatus === "fulfilled" && res?.payload?._id) {
+        sessionStorage.setItem("isAuthenticated", true)
+
+      } else {
+        sessionStorage.setItem("isAuthenticated", false)
+
+      }
     } catch (error) {
       const message =
         error.response?.data?.message ||
@@ -51,12 +63,14 @@ export default function App() {
   }
   useEffect(() => {
     fetch()
-  }, [dispatch]);
 
+  }, [dispatch]);
   return (
     <>
+
       <Router>
         <ScrollToTop />
+
         <Routes>
           {/* Dashboard Layout */}
 
@@ -71,11 +85,32 @@ export default function App() {
             <Route path="/warehouse-list" element={<WarehouseList />} />
             <Route path="/user-list" element={<UserList />} />
             <Route path="/franchises-list" element={<FranchisesList />} />
+            <Route path="/details-view/:id" element={<DetailsView />} />
+
             {/* Forms */}
             <Route path="/form-elements" element={<FormElements />} />
 
             {/* Tables */}
             <Route path="/basic-tables" element={<BasicTables />} />
+            {/* ================= PRODUCT FLOW ================= */}
+            <Route path="/add-product">
+              {/* 🔁 Default redirect */}
+              <Route index element={<Navigate to="brand-add" replace />} />
+
+              <Route path="brand-add" element={<BrandStep />} />
+              <Route
+                path="category-add/:brandId"
+                element={<CategoryStep />}
+              />
+              <Route
+                path="subcategory-add/:categoryId"
+                element={<SubCategoryStep />}
+              />
+              <Route
+                path="product"
+                element={<ProductInventoryStep />}
+              />
+            </Route>
 
             {/* Ui Elements */}
             <Route path="/avatars" element={<Avatars />} />
@@ -97,6 +132,7 @@ export default function App() {
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+      
       </Router>
       <ToastContainer />
     </>
