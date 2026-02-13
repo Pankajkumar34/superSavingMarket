@@ -1,31 +1,18 @@
-import axiosConfig from "../../utils/axios.config";
 import React, { useEffect, useRef, useState } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import Logo from "../../assets/svgLogo.svg"
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAccountDetails } from "../../utils/thunkApis/stats.apis";
 
 const PreviewFile = ({ id }) => {
     const { viewDetails } = useSelector(state => state.stats)
-    const axiosInstance = axiosConfig();
     const pdfRef = useRef();
     const dispatch = useDispatch()
-    // const fetchDtls = async () => {
-    //     try {
-    //         const res = await axiosInstance.get(`/super-admin/get-account-details?id=${id}&role=${role}`);
-    //         setviewDetails(res.viewDetails?.accountviewDetails[0]);
 
-    //         setUserviewDetails(res.viewDetails?.accountviewDetails[0])
-    //     } catch (error) {
-    //         console.log(error, "==>");
-    //     }
-    // };
     useEffect(() => {
         dispatch(fetchAccountDetails(id));
     }, []);
 
-    console.log(viewDetails,"viewDetails==>")
     // ================= PDF DOWNLOAD =================
     const downloadPDF = async () => {
         const canvas = await html2canvas(pdfRef.current, {
@@ -34,7 +21,7 @@ const PreviewFile = ({ id }) => {
             backgroundColor: "#ffffff",
         });
 
-        const imgviewDetails = canvas.toviewDetailsURL("image/jpg");
+        const imgviewDetails = canvas.toDataURL("image/jpg");
 
         const pdf = new jsPDF("p", "mm", "a4");
 
@@ -79,9 +66,20 @@ const PreviewFile = ({ id }) => {
             {/* PREVIEW */}
             <div ref={pdfRef} className="bg-white p-6 rounded shadow">
                 {/* USER DETAILS */}
+                
+
                 <div className="flex justify-center mb-4">
-                    <img src={Logo} className="h-16 object-contain" alt="Logo" />
+                    <div className="w-[130px] h-[137px] rounded-full border border-gray-300 overflow-hidden bg-gray-100">
+                        <img
+                            src={viewDetails.profileImage}
+                            alt="Profile"
+                            className="w-full h-full object-cover object-top"
+                        />
+                    </div>
                 </div>
+
+
+
 
                 <h3 className="text-lg font-semibold border-b mb-4 pb-2">
                     User Details
@@ -127,7 +125,7 @@ const PreviewFile = ({ id }) => {
                         <img
                             src={viewDetails?.data?.documents.aadhaar.frontImage}
                             crossOrigin="anonymous"
-                            className="h-24 w-28 mx-auto object-cover border rounded"
+                            className="h-[120px] w-[200px] mx-auto object-cover border rounded"
                         />
                     </div>
 
@@ -136,7 +134,7 @@ const PreviewFile = ({ id }) => {
                         <img
                             src={viewDetails?.data?.documents.aadhaar.backImage}
                             crossOrigin="anonymous"
-                            className="h-24 w-28 mx-auto object-cover border rounded"
+                            className="h-[120px] w-[200px] mx-auto object-cover border rounded"
                         />
                     </div>
 
@@ -145,7 +143,7 @@ const PreviewFile = ({ id }) => {
                         <img
                             src={viewDetails?.data?.documents.pan.image}
                             crossOrigin="anonymous"
-                            className="h-24 w-28 mx-auto object-cover border rounded"
+                            className="h-[120px] w-[200px] mx-auto object-cover border rounded"
                         />
                     </div>
                 </div>

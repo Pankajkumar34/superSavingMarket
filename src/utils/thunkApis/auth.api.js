@@ -40,6 +40,7 @@ export const getUserList=createAsyncThunk("/type/get-user-list",async(query)=>{
 
 export const fileUploader = async (formData) => {
     try {
+        console.log(formData,"===> form data in api")
         const res = await axiosInstance.post("/upload", formData)
         console.log(res, "res")
         return res.data

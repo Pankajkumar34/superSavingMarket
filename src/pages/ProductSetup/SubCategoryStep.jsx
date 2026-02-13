@@ -1,123 +1,265 @@
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import axiosConfig from "../../utils/axios.config";
+import BrandVirtualSelect from "../../components/Virtualize/Virtualized";
+import { fetchCategoryList } from "../../utils/thunkApis/product.api";
+import { toast } from "react-toastify";
+import { fileUploader } from "../../utils/thunkApis/auth.api";
+import Label from "../../components/form/Label";
+import FileInput from "../../components/form/input/FileInput";
+import ResponsiveImage from "../../components/ui/images/ResponsiveImage";
+import { uploadMultipleImages } from "../../utils/supabase/supaFileUpload";
+
+/* ================= FACTORY FUNCTION ================= */
+const createEmptySubCategory = () => ({
+  name: "",
+  isActive: true,
+  image: null,
+  preview: null,
+});
 
 export default function SubCategoryForm() {
-            const axiosInstance = axiosConfig();
-
+  const axiosInstance = axiosConfig();
   const navigate = useNavigate();
-  const { categoryId } = useParams();
 
-  const [form, setForm] = useState({
-    name: "",
-    isActive: true,
-    image: null
-  });
+  const [categoryList, setCategoryList] = useState([]);
+  const [category, setCategory] = useState(null);
+  // const [brandList, setBrandList] = useState([]);
 
-  const [preview, setPreview] = useState(null);
+
+  const [subCategories, setSubCategories] = useState([
+    createEmptySubCategory(),
+  ]);
+
   const [loading, setLoading] = useState(false);
 
-  /* ================= INPUT ================= */
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm({
-      ...form,
-      [name]: type === "checkbox" ? checked : value
+  /* ================= FETCH CATEGORY LIST ================= */
+  useEffect(() => {
+    fetchCategoryList()
+      .then(setCategoryList)
+      .catch(console.error);
+  }, []);
+
+  /* ================= HANDLERS ================= */
+  const addSubCategory = () => {
+    setSubCategories((prev) => [
+      ...prev,
+      createEmptySubCategory(),
+    ]);
+  };
+
+  const removeSubCategory = (index) => {
+    setSubCategories((prev) =>
+      prev.filter((_, i) => i !== index)
+    );
+  };
+
+  const handleChange = (index, field, value) => {
+    setSubCategories((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        [field]: value,
+      };
+      return updated;
     });
   };
 
-  /* ================= IMAGE ================= */
-  const handleImage = (e) => {
-    const file = e.target.files[0];
-    setForm({ ...form, image: file });
+  const handleImage = (index, file) => {
+    setSubCategories((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        image: file,
+        preview: file ? URL.createObjectURL(file) : null,
+      };
+      return updated;
+    });
+  };
+  const handleImagesChange = async (e, index) => {
+    const files = Array.from(e.target.files);
 
-    if (file) {
-      setPreview(URL.createObjectURL(file));
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
+
+    try {
+      const urls = await uploadMultipleImages(files);
+
+      // const res = await fileUploader(formData); // ✅ SEND FormData
+      // console.log(res, "===> file upload res");
+      // const urls = res.filePath.map(urls => urls.url)
+      console.log(urls, "===> urls")
+      setSubCategories(prev => {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], image: urls[0] };
+        return updated;
+      });
+
+    } catch (error) {
+      console.log(error, "===> file upload error");
     }
   };
 
   /* ================= SUBMIT ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!category) {
+      toast.error("Please select a category");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const fd = new FormData();
-      fd.append("name", form.name);
-      fd.append("categoryId", categoryId);
-      fd.append("isActive", form.isActive);
-      if (form.image) fd.append("image", form.image);
+      const payload = subCategories.map((sub) => ({
+        name: sub.name.trim(),
+        isActive: sub.isActive,
+        categoryId: category._id,
+        image: sub.image,
+      }));
 
-    //   const res = await axiosInstance.post("/subcategory/add", fd);
+      await axiosInstance.post(
+        "/super-admin/add-sub-category",
+        { subCategories: payload }
+      );
 
-      // 👉 next step product + inventory
-      navigate(`/add-product/product`);
+      toast.success("Sub Categories created successfully");
+      navigate("/add-product/product");
     } catch (err) {
-      console.log(err);
-      alert("SubCategory create failed");
+      console.error(err);
+      toast.error("Sub Category creation failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-xl shadow p-6 max-w-2xl mx-auto">
-      <h2 className="text-xl font-semibold mb-6 border-b pb-3">
-        Add Sub Category
-      </h2>
+    <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow p-6">
+      {/* HEADER */}
+      <div className="flex justify-between items-center border-b pb-4 mb-6">
+        <h2 className="text-xl font-semibold">
+          Add Multiple Sub Categories
+        </h2>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+        <button
+          type="button"
+          onClick={addSubCategory}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+        >
+          + Add Sub Category
+        </button>
+      </div>
 
-        {/* Name */}
-        <div className="col-span-2">
-          <label className="text-sm font-medium">Sub Category Name</label>
-          <input
-            type="text"
-            name="name"
-            required
-            value={form.name}
-            onChange={handleChange}
-            placeholder="Eg: Android Phones, Fresh Fruits"
-            className="w-full mt-1 border rounded-lg px-3 py-2"
-          />
-        </div>
+      {/* CATEGORY SELECT */}
+      <div className="mb-6">
+        <label className="text-sm font-medium">
+          Select Category
+        </label>
+        <BrandVirtualSelect
+          value={category}
+          brands={categoryList}
+          label="Category"
+          onChange={setCategory}
+        />
+      </div>
 
-        {/* Active */}
-        <div className="flex items-center gap-3 mt-6">
-          <input
-            type="checkbox"
-            name="isActive"
-            checked={form.isActive}
-            onChange={handleChange}
-            className="w-4 h-4"
-          />
-          <label className="text-sm">Active</label>
-        </div>
-
-        {/* Image */}
-        <div className="col-span-2">
-          <label className="text-sm font-medium">Sub Category Image</label>
-          <div className="flex items-center gap-4 mt-2">
-            <input type="file" accept="image/*" onChange={handleImage} />
-
-            {preview && (
-              <img
-                src={preview}
-                alt="preview"
-                className="w-24 h-24 rounded-lg object-cover border"
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Submit */}
-        <div className="col-span-2 flex justify-end mt-4">
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {subCategories.map((sub, index) => (
+          <div
+            key={index}
+            className="border rounded-xl p-4 bg-gray-50 relative"
           >
-            {loading ? "Saving..." : "Save & Continue"}
+            {subCategories.length > 1 && (
+              <button
+                type="button"
+                onClick={() => removeSubCategory(index)}
+                className="absolute top-3 right-3 text-red-500"
+              >
+                ✕
+              </button>
+            )}
+
+            <h3 className="font-medium mb-4">
+              Sub Category #{index + 1}
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <input
+                placeholder="Sub Category Name"
+                value={sub.name}
+                onChange={(e) =>
+                  handleChange(index, "name", e.target.value)
+                }
+                className="border rounded-lg px-3 py-2"
+                required
+              />
+
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={sub.isActive}
+                  onChange={(e) =>
+                    handleChange(
+                      index,
+                      "isActive",
+                      e.target.checked
+                    )
+                  }
+                />
+                Active
+              </label>
+            </div>
+
+            {/* IMAGE */}
+            <div className="mt-4 flex items-center gap-4">
+              <div>
+                <Label>Upload Logo</Label>
+                <FileInput accept="image/*" multiple={false} onChange={(e) => handleImagesChange(e, index)} className="custom-class" />
+              </div>
+              <div>
+
+                {sub.image && (
+                  <div className="w-32 h-32 border rounded-lg overflow-hidden">
+                    <ResponsiveImage
+                      src={sub.image}
+                      alt={`Sub Category ${index + 1} Logo`}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                )}
+              </div>
+              {/*  */}
+            </div>
+            {/* <div className="mt-4 flex items-center gap-4">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  handleImage(index, e.target.files[0])
+                }
+              />
+
+              {sub.preview && (
+                <img
+                  src={sub.preview}
+                  alt="preview"
+                  className="w-20 h-20 rounded-lg object-cover border"
+                />
+              )}
+            </div> */}
+          </div>
+        ))}
+
+        {/* SUBMIT */}
+        <div className="flex justify-end">
+          <button
+            disabled={loading}
+            className=" bg-[#dc401f] hover:bg-[#11395c] text-white px-6 py-2 rounded-lg disabled:opacity-50"
+          >
+            {loading ? "Saving..." : "Save Sub Categories"}
           </button>
         </div>
       </form>

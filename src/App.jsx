@@ -31,6 +31,8 @@ import ProductInventoryStep from "./pages/ProductSetup/ProductInventoryStep";
 import SubCategoryStep from "./pages/ProductSetup/SubCategoryStep";
 import CategoryStep from "./pages/ProductSetup/CategoryStep";
 import BrandStep from "./pages/ProductSetup/BrandStep";
+import BrandCategorySubPage from "./pages/ProductSetup/BrandCategorySubPage";
+import ProductList from "./pages/ProductSetup/ProductList";
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -93,17 +95,19 @@ export default function App() {
             {/* Tables */}
             <Route path="/basic-tables" element={<BasicTables />} />
             {/* ================= PRODUCT FLOW ================= */}
-            <Route path="/add-product">
-              {/* 🔁 Default redirect */}
+            <Route path="/product-list" element={<ProductList />} />
+            
+            <Route path="add-product" element={<BrandCategorySubPage />}>
               <Route index element={<Navigate to="brand-add" replace />} />
-
               <Route path="brand-add" element={<BrandStep />} />
+
+
               <Route
-                path="category-add/:brandId"
+                path="category-add"
                 element={<CategoryStep />}
               />
               <Route
-                path="subcategory-add/:categoryId"
+                path="subcategory-add"
                 element={<SubCategoryStep />}
               />
               <Route
@@ -132,7 +136,7 @@ export default function App() {
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-      
+
       </Router>
       <ToastContainer />
     </>

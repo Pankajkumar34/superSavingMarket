@@ -33,8 +33,8 @@ const navItems = [
   },
    {
     icon: <PencilIcon />,
-    name: "Add Product",
-    path: "/add-product",
+    name: "Product List",
+    path: "/product-list",
   },
   {
     icon: <CalenderIcon />,

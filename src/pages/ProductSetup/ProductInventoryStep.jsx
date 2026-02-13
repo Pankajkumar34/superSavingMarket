@@ -1,37 +1,48 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axiosConfig from "../../utils/axios.config";
+import { fetchCatalogTree } from "../../utils/thunkApis/product.api";
+import BrandVirtualSelect from "../../components/Virtualize/Virtualized";
+import SkuInventoryForm from "./SkuInventoryForm";
+import { useSelector } from "react-redux";
+import { fileUploader } from "../../utils/thunkApis/auth.api";
+import FileInput from "../../components/form/input/FileInput";
+import { toast } from "react-toastify";
+import { uploadMultipleImages } from "../../utils/supabase/supaFileUpload";
 
-export default function ProductInventoryFormFull({ brandId, categoryId, subCategoryId }) {
+export default function ProductInventoryFormFull() {
   const axiosInstance = axiosConfig();
+  // const { user } = useSelector(state => state.auth)
   const [loading, setLoading] = useState(false);
   const [previewImages, setPreviewImages] = useState([]);
+  const [catelogTree, setCatalogTree] = useState(null);
+  const [skus, setSkus] = useState({});
+  // const [subCategory, setSubCategory] = useState(null);
+  const [brandId, setBrandId] = useState(null);
+  const [categoryId, setCategoryId] = useState(null);
+  const [subCategoryId, setSubCategoryId] = useState(null);
+
+
   const [form, setForm] = useState({
     product: {
       name: "",
-      slug: "",
-      brand: brandId || "",
-      category: categoryId || "",
-      subCategory: subCategoryId || "",
       images: [],
-      price: { mrp: "", sellingPrice: "" },
-      stock: 0,
       isActive: true
     },
-    inventory: {
-      variant: {},
-      sku: "",
-      warehouse: "",
-      quantity: 0,
-      reservedQty: 0,
-      costPrice: 0,
-      sellingPrice: 0,
-      batchNumber: "",
-      manufactureDate: "",
-      expiryDate: "",
-      serialNumbers: [""],
-      status: "active",
-      stockHistory: []
-    }
+    // inventory: {
+    //   variant: {},
+    //   sku: "",
+    //   warehouse: "",
+    //   quantity: 0,
+    //   reservedQty: 0,
+    //   costPrice: 0,
+    //   sellingPrice: 0,
+    //   batchNumber: "",
+    //   manufactureDate: "",
+    //   expiryDate: "",
+    //   serialNumbers: [""],
+    //   status: "active",
+    //   stockHistory: []
+    // }
   });
 
   /* ==================== HANDLERS ==================== */
@@ -50,105 +61,89 @@ export default function ProductInventoryFormFull({ brandId, categoryId, subCateg
     }
   };
 
-  const handlePriceChange = (e) => {
-    const { name, value } = e.target;
-    setForm(prev => ({
-      ...prev,
-      product: { ...prev.product, price: { ...prev.product.price, [name]: value } }
-    }));
-  };
 
-  const handleInventoryChange = (e, index = null) => {
-    const { name, value } = e.target;
-    if (name === "serialNumbers") {
-      const serials = [...form.inventory.serialNumbers];
-      serials[index] = value;
-      setForm(prev => ({ ...prev, inventory: { ...prev.inventory, serialNumbers: serials } }));
-    } else {
-      setForm(prev => ({
-        ...prev,
-        inventory: { ...prev.inventory, [name]: value }
-      }));
-    }
-  };
 
-  const handleVariantChange = (key, value) => {
-    setForm(prev => ({
-      ...prev,
-      inventory: { ...prev.inventory, variant: { ...prev.inventory.variant, [key]: value } }
-    }));
-  };
 
-  const handleImagesChange = (e) => {
+
+
+
+  const handleImagesChange = async (e) => {
     const files = Array.from(e.target.files);
-    setForm(prev => ({
-      ...prev,
-      product: { ...prev.product, images: files }
-    }));
 
-    const previews = files.map(f => URL.createObjectURL(f));
-    setPreviewImages(previews);
-  };
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
 
-  /* ==================== ADD SERIAL ==================== */
-  const addSerial = () => {
-    setForm(prev => ({
-      ...prev,
-      inventory: { ...prev.inventory, serialNumbers: [...prev.inventory.serialNumbers, ""] }
-    }));
+    try {
+      const res = await uploadMultipleImages(files);
+      // const res = await fileUploader(formData); // ✅ SEND FormData
+      // console.log(res, "===> file upload res");
+      // const urls = res.filePath.map(urls => urls.url)
+      // console.log(urls, "===> urls")
+      const urls = res || "";
+      const productImg = urls.map(url => ({ url, isPrimary: false, altText: form.product.name }));
+      setForm((prev) => ({
+        ...prev,
+        product: { ...prev.product, images: productImg },
+      }));
+
+      // preview
+      const previews = files.map((f) => URL.createObjectURL(f));
+      setPreviewImages(urls);
+    } catch (error) {
+      console.log(error, "===> file upload error");
+    }
+
+
   };
 
   /* ==================== SUBMIT ==================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const data = new FormData();
       const { product, inventory } = form;
 
-      // Product
-      data.append("name", product.name);
-      data.append("slug", product.slug);
-      data.append("brand", product.brand);
-      data.append("category", product.category);
-      data.append("subCategory", product.subCategory);
-      data.append("stock", product.stock);
-      data.append("isActive", product.isActive);
-      data.append("price[mrp]", product.price.mrp);
-      data.append("price[sellingPrice]", product.price.sellingPrice);
+      const payload = {
+        product: {
+          ...product,
+          brand: brandId?._id || "",
+          category: categoryId?._id || "",
 
-      product.images.forEach(img => data.append("images", img));
+        },
+        subCategory: subCategoryId?._id || "",
+        inventory: skus.inventory,
+        skus: skus.skus
+      }
 
-      // Inventory
-      Object.keys(inventory).forEach(key => {
-        if (key === "serialNumbers") {
-          inventory.serialNumbers.forEach(sn => data.append("serialNumbers[]", sn));
-        } else if (key === "variant") {
-          Object.keys(inventory.variant).forEach(vk => data.append(`variant[${vk}]`, inventory.variant[vk]));
-        } else {
-          data.append(key, inventory[key]);
-        }
-      });
 
-      await axiosInstance.post("/product/add-with-inventory", data);
-
-      alert("Product & Inventory added successfully");
+      const res = await axiosInstance.post("/super-admin/create-product", payload);
+      console.log(res, "===> res product create")
+      toast.success("Product & Inventory added successfully");
 
       // Reset
       setForm({
-        product: { name: "", slug: "", brand: brandId || "", category: categoryId || "", subCategory: subCategoryId || "", images: [], price: { mrp: "", sellingPrice: "" }, stock: 0, isActive: true },
-        inventory: { variant: {}, sku: "", warehouse: "", quantity: 0, reservedQty: 0, costPrice: 0, sellingPrice: 0, batchNumber: "", manufactureDate: "", expiryDate: "", serialNumbers: [""], status: "active", stockHistory: [] }
+        product: { name: "", slug: "", brand: "", category: "", subCategory: "", images: [], isActive: true },
       });
+      setSkus(null)
       setPreviewImages([]);
 
     } catch (err) {
       console.log(err);
-      alert("Error adding product");
+      toast.error("Error adding product");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const fetch = async () => {
+      const res = await fetchCatalogTree()
+      setCatalogTree(res)
+    }
+    fetch()
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 flex justify-center">
@@ -160,20 +155,46 @@ export default function ProductInventoryFormFull({ brandId, categoryId, subCateg
           <h3 className="text-lg font-semibold mb-4">Product Details</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <input type="text" name="name" value={form.product.name} onChange={handleProductChange} placeholder="Product Name" className="input" required />
-            <input type="text" name="slug" value={form.product.slug} onChange={handleProductChange} placeholder="Slug" className="input" />
-            <input type="text" name="brand" value={form.product.brand} onChange={handleProductChange} placeholder="Brand ID" className="input" required />
-            <input type="text" name="category" value={form.product.category} onChange={handleProductChange} placeholder="Category ID" className="input" required />
-            <input type="text" name="subCategory" value={form.product.subCategory} onChange={handleProductChange} placeholder="SubCategory ID" className="input" />
-            <input type="number" name="mrp" value={form.product.price.mrp} onChange={handlePriceChange} placeholder="MRP" className="input" />
-            <input type="number" name="sellingPrice" value={form.product.price.sellingPrice} onChange={handlePriceChange} placeholder="Selling Price" className="input" />
-            <input type="number" name="stock" value={form.product.stock} onChange={handleProductChange} placeholder="Stock" className="input col-span-1 md:col-span-3" />
+            {/* <input type="text" name="slug" value={form.product.slug} onChange={handleProductChange} placeholder="Slug" className="input" /> */}
+            <div className="mb-6">
+
+              <BrandVirtualSelect
+                value={brandId}
+                brands={catelogTree}
+                label="Brand"
+                onChange={setBrandId}
+              />
+            </div>
+            <div className="mb-6">
+
+              <BrandVirtualSelect
+                value={categoryId}
+                brands={brandId?.categories || []}
+                label="Category"
+                onChange={setCategoryId}
+              />
+            </div>
+            <div className="mb-6">
+
+              <BrandVirtualSelect
+                value={subCategoryId}
+                brands={categoryId?.subCategories || []}
+                label="Sub Category"
+                onChange={setSubCategoryId}
+              />
+            </div>
+
+            {/* <input type="number" name="mrp" value={form.product.price.mrp} onChange={handlePriceChange} placeholder="MRP" className="input" /> */}
+            {/* <input type="number" name="sellingPrice" value={form.product.price.sellingPrice} onChange={handlePriceChange} placeholder="Selling Price" className="input" /> */}
+            {/* <input type="number" name="stock" value={form.product.stock} onChange={handleProductChange} placeholder="Stock" className="input col-span-1 md:col-span-3" /> */}
 
             <div className="col-span-1 md:col-span-3">
               <label className="text-sm font-medium">Product Images</label>
-              <input type="file" accept="image/*" multiple onChange={handleImagesChange} className="mt-2" />
+              <FileInput accept="image/*" multiple={true} onChange={handleImagesChange} className="custom-class" />
+              {/* <input type="file" accept="image/*" multiple onChange={handleImagesChange} className="custom-class" /> */}
               <div className="flex gap-4 mt-2 flex-wrap">
-                {previewImages.map((img, i) => (
-                  <img key={i} src={img} alt="preview" className="w-24 h-24 object-cover rounded-lg border" />
+                {form?.product?.images?.map((img, i) => (
+                  <img key={i} src={img?.url} alt="preview" className="w-24 h-24 object-cover rounded-lg border" />
                 ))}
               </div>
             </div>
@@ -188,39 +209,39 @@ export default function ProductInventoryFormFull({ brandId, categoryId, subCateg
         {/* INVENTORY */}
         <div>
           <h3 className="text-lg font-semibold mb-4">Inventory Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <input type="text" name="sku" value={form.inventory.sku} onChange={handleInventoryChange} placeholder="SKU" className="input" required />
-            <input type="text" name="warehouse" value={form.inventory.warehouse} onChange={handleInventoryChange} placeholder="Warehouse ID" className="input" />
-            <input type="number" name="quantity" value={form.inventory.quantity} onChange={handleInventoryChange} placeholder="Quantity" className="input" />
-            <input type="number" name="reservedQty" value={form.inventory.reservedQty} onChange={handleInventoryChange} placeholder="Reserved Qty" className="input" />
-            <input type="number" name="costPrice" value={form.inventory.costPrice} onChange={handleInventoryChange} placeholder="Cost Price" className="input" />
-            <input type="number" name="sellingPrice" value={form.inventory.sellingPrice} onChange={handleInventoryChange} placeholder="Selling Price" className="input" />
+          <SkuInventoryForm productName={form.product.name} categoryType={"grocery"} submitDataHandler={(data) => setSkus(data)} />
 
-            <input type="text" name="batchNumber" value={form.inventory.batchNumber} onChange={handleInventoryChange} placeholder="Batch Number" className="input" />
-            <input type="date" name="manufactureDate" value={form.inventory.manufactureDate} onChange={handleInventoryChange} placeholder="Manufacture Date" className="input" />
-            <input type="date" name="expiryDate" value={form.inventory.expiryDate} onChange={handleInventoryChange} placeholder="Expiry Date" className="input" />
-
-            {/* Serial Numbers */}
-            {form.inventory.serialNumbers.map((sn, i) => (
-              <input key={i} type="text" value={sn} onChange={(e) => handleInventoryChange({...e, target:{...e.target, name:"serialNumbers"}}, i)} placeholder="Serial Number" className="input" />
-            ))}
-            <button type="button" onClick={addSerial} className="col-span-1 md:col-span-3 bg-gray-200 rounded px-4 py-2">Add Serial Number</button>
-
-            <select name="status" value={form.inventory.status} onChange={handleInventoryChange} className="input col-span-1 md:col-span-3">
-              <option value="active">Active</option>
-              <option value="out_of_stock">Out of Stock</option>
-              <option value="expired">Expired</option>
-              <option value="damaged">Damaged</option>
-            </select>
-          </div>
         </div>
 
         {/* SUBMIT */}
-        <div className="text-right">
-          <button disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl disabled:opacity-50">
+        <div className="relative inline-block float-right group">
+          <button
+            disabled={loading || !skus || Object.keys(skus).length === 0}
+            className="bg-[#dc401f] hover:bg-[#11395c] text-white px-6 py-2 rounded-xl
+               disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             {loading ? "Saving..." : "Save Product & Inventory"}
           </button>
+
+          {/* Tooltip */}
+          {!skus || Object.keys(skus).length === 0 && (
+            <div
+              className="absolute right-0 -top-10 z-50
+                 hidden group-hover:block
+                 bg-gray-800 text-white text-xs px-3 py-1 rounded-md shadow-lg"
+            >
+              First save SKUs
+            </div>
+          )}
         </div>
+
+
+        {/* <div className="text-right">
+
+          <button disabled={loading || skus?.length<0} className=" bg-[#dc401f] hover:bg-[#11395c] text-white px-6 py-2 rounded-xl disabled:opacity-50">
+            {loading ? "Saving..." : "Save Product & Inventory"}
+          </button>
+        </div> */}
       </form>
     </div>
   );

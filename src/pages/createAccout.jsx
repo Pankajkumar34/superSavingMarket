@@ -5,6 +5,8 @@ import CropModal from "../components/reactCrop/cropFile";
 import { getCroppedImg } from "../components/reactCrop/helperCrop";
 import PreviewFile from "../components/pdfCanverter/previewFile";
 import { useNavigate } from "react-router";
+import ProfileUploader from "../components/ui/profileUploadButton/uploaderProfile";
+import { uploadMultipleImages } from "../utils/supabase/supaFileUpload";
 
 
 
@@ -42,13 +44,13 @@ const CreateAccount = () => {
     const axiosInstance = axiosConfig()
     const [cropImage, setCropImage] = useState(null);
     const [showCrop, setShowCrop] = useState(false);
-    const [isLoading,setIsLoading]=useState(false)
-    const [isPreview,setIsPreview]=useState("")
+    const [isLoading, setIsLoading] = useState(false)
+    const [profileImgUrl, setProfileImgUrl] = useState("")
     const [croppedImage, setCroppedImage] = useState("");
     const [rawImage, setRawImage] = useState(null);
     const [cropField, setCropField] = useState("");
 
-const navigate =useNavigate()
+    const navigate = useNavigate()
 
 
     const [docPreview, setDocPreview] = useState({
@@ -57,12 +59,13 @@ const navigate =useNavigate()
         panImage: null,
         passportPhoto: null
     });
-   
+
 
     const [formData, setFormData] = useState({
         // ===== Basic Details =====
         name: "",
         firstName: "",
+        profileImage: "",
         lastName: "",
         email: "",
         password: "",
@@ -91,9 +94,9 @@ const navigate =useNavigate()
     };
     const handleFileChange = async (e) => {
         const { name, files } = e.target;
+
         const file = files[0];
         if (!file) return;
-
         // 🔥 ONLY PASSPORT PHOTO → CROP
         if (name === "passportPhoto") {
             const localUrl = URL.createObjectURL(file);
@@ -109,8 +112,10 @@ const navigate =useNavigate()
         uploadData.append("file", file);
 
         try {
-            const res = await fileUploader(uploadData);
-            const url = res?.filePath?.[0]?.url;
+            // const res = await fileUploader(uploadData);
+            // const url = res?.filePath?.[0]?.url;
+            const urls = await uploadMultipleImages(file);
+            const url = urls?.[0];
 
             setFormData((prev) => ({ ...prev, [name]: url }));
             setDocPreview((prev) => ({ ...prev, [name]: url }));
@@ -118,7 +123,6 @@ const navigate =useNavigate()
             console.error("Upload failed");
         }
     };
-
     const handlePassportCrop = async (croppedAreaPixels) => {
         try {
             const croppedBase64 = await getCroppedImg(
@@ -130,9 +134,14 @@ const navigate =useNavigate()
 
             const uploadData = new FormData();
             uploadData.append("file", blob, "passport.jpg");
-
-            const res = await fileUploader(uploadData);
-            const url = res?.filePath?.[0]?.url;
+            const file = new File([blob], `passport_${Date.now()}.jpg`, {
+                type: "image/jpeg",
+            });
+            const urls = await uploadMultipleImages(file);
+            console.log(urls, "===>");
+            const url = urls?.[0];
+            // const res = await fileUploader(uploadData);
+            // const url = res?.filePath?.[0]?.url;
 
             setFormData((prev) => ({
                 ...prev,
@@ -150,7 +159,6 @@ const navigate =useNavigate()
         }
     };
 
-
     const handleSubmit = async () => {
         try {
             setIsLoading(true)
@@ -161,7 +169,6 @@ const navigate =useNavigate()
                 email: formData.email,
                 password: formData.password,
                 countryCode: formData.countryCode,
-                profileImage: "",
                 phoneNumber: formData.phoneNumber,
                 role: formData.role,
                 aadhaarNumber: formData.aadhaarNumber,
@@ -174,8 +181,10 @@ const navigate =useNavigate()
                 bankAccountNumber: formData.bankAccountNumber,
                 ifscCode: formData.ifscCode,
                 bankName: formData.bankName,
-                branchName: formData.branchName
+                branchName: formData.branchName,
+                profileImage: formData.profileImage
             })
+
             // console.log(res, "resres=>res")
             if (res.status === 201) {
                 setIsLoading(false)
@@ -224,6 +233,14 @@ const navigate =useNavigate()
                 <h3 className="text-lg font-semibold text-gray-700 mb-3">
                     Basic Details
                 </h3>
+                <div className="flex justify-center items-center">
+                    <ProfileUploader
+                        size={140} // optional
+                        initialImage={formData.profileImage} // optional
+                        setFn={setFormData}
+                    />
+
+                </div>
 
                 <div className="mb-3">
                     <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -282,7 +299,29 @@ const navigate =useNavigate()
                 />
 
                 <div className="grid grid-cols-2 gap-4 mb-3">
-                    <input type="file" name="aadhaarFront" onChange={handleFileChange} />
+                    <div className="flex flex-col w-full max-w-sm">
+                        <label className="mb-2 font-medium text-gray-700" htmlFor="aadhaarFront">
+                            Aadhaar Front
+                        </label>
+
+                        <label
+                            htmlFor="aadhaarFront"
+                            className="flex items-center justify-between border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-blue-500 hover:bg-gray-50 transition"
+                        >
+                            <span className="text-gray-500">
+                                Choose a file...
+                            </span>
+                            <span className="text-blue-500 font-medium">Browse</span>
+                        </label>
+
+                        <input
+                            id="aadhaarFront"
+                            type="file"
+                            name="aadhaarFront" onChange={handleFileChange}
+                            className="hidden"
+                        />
+                    </div>
+
                     <DocPreview
                         label="Aadhaar Front"
                         image={docPreview.aadhaarFront}
@@ -290,9 +329,32 @@ const navigate =useNavigate()
                             setDocPreview({ ...docPreview, aadhaarFront: null })
                         }
                     />
-                    <input type="file" name="aadhaarBack" onChange={handleFileChange} />
+                    <div className="flex flex-col w-full max-w-sm">
+                        <label className="mb-2 font-medium text-gray-700" htmlFor="aadhaarBack">
+                            Aadhaar Back
+                        </label>
+
+                        <label
+                            htmlFor="aadhaarBack"
+                            className="flex items-center justify-between border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-blue-500 hover:bg-gray-50 transition"
+                        >
+                            <span className="text-gray-500">
+                                Choose a file...
+                            </span>
+                            <span className="text-blue-500 font-medium">Browse</span>
+                        </label>
+
+                        <input
+                            id="aadhaarBack"
+                            type="file"
+                            name="aadhaarBack" onChange={handleFileChange}
+                            className="hidden"
+                        />
+                    </div>
+
+
                     <DocPreview
-                        label="Aadhaar Front"
+                        label="Aadhaar Back"
                         image={docPreview.aadhaarBack}
                         onRemove={() =>
                             setDocPreview({ ...docPreview, aadhaarBack: null })
@@ -306,7 +368,11 @@ const navigate =useNavigate()
                     onChange={handleChange}
                     className="input"
                 />
-                <input type="file" name="panImage" onChange={handleFileChange} className="mb-3" />
+                <label htmlFor="panImage" className="block text-sm text-gray-600 mb-1">
+                    Upload PAN Card
+                </label>
+                <input type="file"  name="panImage" onChange={handleFileChange}  className="mb-3 flex items-center justify-between border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-blue-500 hover:bg-gray-50 transition"
+ />
                 <DocPreview
                     label="PAN Card"
                     image={docPreview.panImage}
@@ -317,7 +383,7 @@ const navigate =useNavigate()
                 <label className="block text-sm text-gray-600 mb-1">
                     Passport Photo
                 </label>
-                <input type="file" name="passportPhoto" onChange={handleFileChange} />
+                <input type="file" name="passportPhoto" onChange={handleFileChange} className="mb-3 flex items-center justify-between border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-blue-500 hover:bg-gray-50 transition" />
                 <DocPreview
                     label="Passport Size Photo"
                     image={docPreview.passportPhoto}
@@ -365,12 +431,12 @@ const navigate =useNavigate()
             <div className="flex justify-end">
                 <button
                     onClick={handleSubmit}
-                    className="px-6 py-2 rounded-lg text-white bg-green-600 hover:bg-green-700 transition"
+                    className="px-6 py-2 rounded-lg text-white bg-[#dc401f] hover:bg-[#11395c] transition"
                 >
-                  {isLoading?"Loading...":" Create Account"}  
+                    {isLoading ? "Loading..." : " Create Account"}
                 </button>
             </div>
-<PreviewFile id=""/>
+            {/* <PreviewFile id="" /> */}
         </div>
 
     );
