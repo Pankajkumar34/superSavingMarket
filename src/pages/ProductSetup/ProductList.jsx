@@ -21,7 +21,7 @@ const ProductList = () => {
       const res = await getProductList(cursor);
 
       setProducts(prev => {
-        const newData = res.data.filter(
+        const newData = res?.data.filter(
           newItem => !prev.some(prevItem => prevItem._id === newItem._id)
         );
 

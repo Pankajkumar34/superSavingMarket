@@ -25,7 +25,7 @@ export default function EcommerceMetrics() {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
       {/* <!-- Metric Item Start --> */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6" onClick={()=>navigate("/user-list")}>
+     { userStats && userStats?.roleCounts.USER &&<div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6" onClick={()=>navigate("/user-list")}>
         <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
           <GroupIcon className="text-gray-800 size-6 dark:text-white/90" />
         </div>
@@ -55,8 +55,8 @@ export default function EcommerceMetrics() {
             <GrowthBadge value={userStats?.growth?.users?.month?.percentage} />
           </div>
         </div>
-      </div>
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6cursor-pointer" onClick={()=>navigate("/franchises-list")}>
+      </div>}
+      {userStats && userStats?.roleCounts.FRANCHISE_ADMIN && <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6cursor-pointer" onClick={()=>navigate("/franchises-list")}>
         <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
           <GroupIcon className="text-gray-800 size-6 dark:text-white/90" />
         </div>
@@ -86,8 +86,8 @@ export default function EcommerceMetrics() {
             <GrowthBadge value={userStats?.growth?.franchise?.month?.percentage} />
           </div>
         </div>
-      </div>
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6cursor-pointer" onClick={()=>navigate("/warehouse-list")}>
+      </div>}
+     {userStats && userStats?.roleCounts.WAREHOUSE_ADMIN &&  <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6cursor-pointer" onClick={()=>navigate("/warehouse-list")}>
         <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
           <GroupIcon className="text-gray-800 size-6 dark:text-white/90" />
         </div>
@@ -102,10 +102,9 @@ export default function EcommerceMetrics() {
             </h4>
           </div>
 
-         
 
         </div>
-      </div>
+      </div>}
       {/* <!-- Metric Item End --> */}
 
       {/* <!-- Metric Item Start --> */}

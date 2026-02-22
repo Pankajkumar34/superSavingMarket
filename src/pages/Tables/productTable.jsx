@@ -20,7 +20,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router";
 
-
 const ProductTable = ({
   products = [],
   onView,
@@ -42,7 +41,8 @@ const ProductTable = ({
           <TableRow>
             <TableCell>S.No</TableCell>
             <TableCell>Product</TableCell>
-            {!isMobile && <TableCell>Brand</TableCell>}
+            <TableCell>Barcode</TableCell>
+            {/* {!isMobile && <TableCell>Brand</TableCell>} */}
             {!isMobile && <TableCell>Category</TableCell>}
             {!isMobile && <TableCell>Subcategory</TableCell>}
             <TableCell align="center">Status</TableCell>
@@ -55,6 +55,9 @@ const ProductTable = ({
             <TableRow key={p._id} hover ref={lastElementRef}>
               {/* Product */}
               <TableCell>{index+1}</TableCell>
+              {/* <TableCell>
+                <img src={""} alt="" />
+              </TableCell> */}
               <TableCell>
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Avatar
@@ -81,7 +84,7 @@ const ProductTable = ({
                 <TableCell>{p.category?.name || "-"}</TableCell>
               )}
                {!isMobile && (
-                <TableCell>{p.subCategory?.name || "-"}</TableCell>
+                <TableCell>{p.subcategory?.name || "-"}</TableCell>
               )}
 
               {/* Status */}

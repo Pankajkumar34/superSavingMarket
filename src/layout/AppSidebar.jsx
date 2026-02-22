@@ -36,6 +36,11 @@ const navItems = [
     name: "Product List",
     path: "/product-list",
   },
+   {
+    icon: <PencilIcon />,
+    name: "Product Assign",
+    path: "/product-list",
+  },
   {
     icon: <CalenderIcon />,
     name: "Calendar",
